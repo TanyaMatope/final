@@ -1,70 +1,49 @@
-name: Windows CI/CD Pipeline
+name: .NET Framework CI/CD
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
     branches:
       - main
 
 jobs:
   build:
     runs-on: windows-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
+      - name: Setup .NET Framework
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 4.x
+          
+      - name: Restore NuGet packages
+        run: nuget restore webapp1/webapp1.csproj
+      
+      - name: Build
+        run: msbuild webapp1/webapp1.csproj /p:Configuration=Release /p:Platform="Any CPU"
+        
+      - name: Test
+        run: vstest webapp1.Tests/bin/Release/webapp1.Tests.dll /Logger:trx
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: '5.0.x'
+      - name: Publish Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts
+          path: |
+            webapp1/bin/Release
+            webapp1.Tests/bin/Release
 
-    - name: Restore dependencies
-      run: dotnet restore ./webapp1.sln
-
-    - name: Build
-      run: dotnet build ./webapp1.sln --configuration Release
-
-  test:
+  deploy:
     needs: build
     runs-on: windows-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: '5.0.x'
-
-    - name: Test
-      run: dotnet test ./webapp1.sln --configuration Release --collect:"XPlat Code Coverage"
-
-  deploy:
-    needs: test
-    runs-on: windows-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: '5.0.x'
-
-    - name: Publish
-      run: dotnet publish ./webapp1.sln --configuration Release --output ./publish
-
-    - name: Deploy to Staging
-      run: |
-        # Add your deployment commands here
-        # For example, deploying to Azure or another platform
-        echo "Deploying to staging environment"
-
-    - name: Notify on Deployment Failure
-      if: failure()
-      run: echo "Deployment to staging failed. Notify the team."
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
+      - name: Deploy to Staging
+        run: |
+          # Add deployment steps here (e.g., copy files to the server)
+          # Example: xcopy or robocopy to copy files to a staging environment
