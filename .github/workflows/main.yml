@@ -17,10 +17,10 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Restore NuGet packages
-      run: dotnet restore ./WebApplication3.sln
+      run: dotnet restore ./WebApplication2.sln
 
     - name: Build
-      run: dotnet build ./WebApplication3.sln --configuration Release
+      run: dotnet build ./WebApplication2.sln --configuration Release
 
   test:
     needs: build
@@ -31,7 +31,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Test
-      run: dotnet test ./WebApplication3.sln --configuration Release --collect:"XPlat Code Coverage"
+      run: dotnet test ./WebApplication2.sln --configuration Release --collect:"XPlat Code Coverage"
 
   deploy:
     needs: test
@@ -42,7 +42,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Publish
-      run: dotnet publish ./WebApplication3.sln --configuration Release --output ./publish
+      run: dotnet publish ./WebApplication2.sln --configuration Release --output ./publish
 
     - name: Deploy to Staging
       run: |
